@@ -59,9 +59,7 @@ define("UTHMANI_SMALL_YA2", "ۦ");
 define("UTHMANI_SMALL_NUN", "ۨ");
 define("UTHMANI_IMALAH", "۪");
 
-// http://corpus.quran.com/java/unicode.jsp
-$UTHMANI_DIAC = json_decode('["\u06EA", "\u06EB", "\u06EC", "\u06ED", "\u06E2", "\u06E3", "\u06E5", "\u06E6", "\u06E8", "\u06df", "\u06e0", "\u06DC", "\u0653", "\u0670"]');
-$UTHMANI_WAQF = json_decode('["\u06D6", "\u06D7", "\u06D8", "\u06D9", "\u06DA", "\u06DB", "\u06DC"]');
+$UTHMANI_DIAC = json_decode('["\u0653", "\u0670", "\u06D6", "\u06D7", "\u06D8", "\u06D9", "\u06DA", "\u06DB", "\u06DC", "\u06DE", "\u06DF", "\u06E0", "\u06E1", "\u06E2", "\u06E3", "\u06E5", "\u06E6", "\u06E7", "\u06E8", "\u06E9", "\u06EA", "\u06EB", "\u06EC", "\u06ED"]');
 
 // mengodekan teks arabic menjadi kode fonetik dengan beberapa langkah
 // param  : $ar_string : string teks Al-Quran (arabic)
@@ -90,7 +88,7 @@ function ar_fonetik($ar_string, $tanpa_harakat = true) {
 // return : string arabic clean
 function ar_format_uthmani($ar_string) {
 
-    global $UTHMANI_DIAC, $UTHMANI_WAQF;
+    global $UTHMANI_DIAC;
 
     $ar_string = mb_ereg_replace(UTHMANI_HIZB, "", $ar_string);
     $ar_string = mb_ereg_replace(UTHMANI_SAJDAH, "", $ar_string);
@@ -112,9 +110,9 @@ function ar_format_uthmani($ar_string) {
         $ar_string = mb_ereg_replace($u, "", $ar_string);
     }
 
-    foreach ($UTHMANI_WAQF as $u) {
-        $ar_string = mb_ereg_replace($u, "", $ar_string);
-    }
+    // iqtaraba di awal, iqra
+    $ar_string = mb_ereg_replace("^اقْتَرَبَ", "إِقْتَرَبَ", $ar_string);
+    $ar_string = mb_ereg_replace("^اقْرَ", "إِقْرَ", $ar_string);
 
     return $ar_string;
 
@@ -355,6 +353,7 @@ function ar_substitusi_idgham($ar_string) {
     $ar_string = mb_ereg_replace("بُنْيَن", "BUNYAN", $ar_string);
     $ar_string = mb_ereg_replace("صِنْوَن", "SINWAN", $ar_string);
     $ar_string = mb_ereg_replace("قِنْوَن", "QINWAN", $ar_string);
+    $ar_string = mb_ereg_replace("نُنْوَلْقَلَمِ", "NUNWALQALAMI", $ar_string);
     
     $ar_string = mb_ereg_replace(NUN.SUKUN.YA, YA, $ar_string);    
     $ar_string = mb_ereg_replace(NUN.SUKUN.WAU, WAU, $ar_string);
@@ -367,6 +366,7 @@ function ar_substitusi_idgham($ar_string) {
     $ar_string = mb_ereg_replace("BUNYAN", "بُنْيَن", $ar_string);
     $ar_string = mb_ereg_replace("SINWAN", "صِنْوَن", $ar_string);
     $ar_string = mb_ereg_replace("QINWAN", "قِنْوَن", $ar_string);
+    $ar_string = mb_ereg_replace("NUNWALQALAMI", "نُنْوَلْقَلَمِ", $ar_string);
     
     return $ar_string;
     
@@ -656,12 +656,6 @@ if (php_sapi_name() == 'cli') {
     $ar = "يَـٰٓأَيُّهَا ٱلَّذِينَ ءَامَنُوا۟ ٱتَّقُوا۟ ٱللَّهَ وَذَرُوا۟ مَا بَقِىَ مِنَ ٱلرِّبَوٰٓا۟ إِن كُنتُم مُّؤْمِنِينَ";
 
     // echo ar_fonetik($ar, false);
-
-    // wrong:
-    // 2484 iqtaraba
-    // 4847 iqtaraba
-    // 5272 nun walqalami
-    // 6107 iqra
 
 }
 
