@@ -55,6 +55,9 @@ define("UTHMANI_SAJDAH", "۩");
 define("UTHMANI_ALIF", "ٱ");
 define("UTHMANI_SMALL_HAMZAH", "ٔ");
 define("UTHMANI_SMALL_YA", "ۧ");
+define("UTHMANI_SMALL_YA2", "ۦ");
+define("UTHMANI_SMALL_NUN", "ۨ");
+define("UTHMANI_IMALAH", "۪");
 
 // http://corpus.quran.com/java/unicode.jsp
 $UTHMANI_DIAC = json_decode('["\u06EA", "\u06EB", "\u06EC", "\u06ED", "\u06E2", "\u06E3", "\u06E5", "\u06E6", "\u06E8", "\u06df", "\u06e0", "\u06DC", "\u0653", "\u0670"]');
@@ -95,6 +98,11 @@ function ar_format_uthmani($ar_string) {
     $ar_string = mb_ereg_replace(UTHMANI_SMALL_HAMZAH, HAMZAH, $ar_string);
 
     $ar_string = mb_ereg_replace(UTHMANI_SMALL_YA.KASRAH, YA.KASRAH, $ar_string);
+    $ar_string = mb_ereg_replace(UTHMANI_SMALL_YA.SYADDAH.KASRAH, YA.KASRAH, $ar_string);
+    $ar_string = mb_ereg_replace(UTHMANI_SMALL_YA2.FATHAH, YA.FATHAH, $ar_string);
+
+    $ar_string = mb_ereg_replace(UTHMANI_IMALAH, KASRAH, $ar_string);
+    $ar_string = mb_ereg_replace(UTHMANI_SMALL_NUN, NUN.SUKUN, $ar_string);
 
     foreach ($UTHMANI_DIAC as $u) {
         $ar_string = mb_ereg_replace($u, "", $ar_string);
@@ -645,11 +653,6 @@ if (php_sapi_name() == 'cli') {
 
     // issues:
     // 1130 yalhats
-    // 1150 waliyiya
-    // 1514 majraha
-    // 2571 nunzil
-    // 3195 ataniyallah
-    // 4262 aa'zamiy
     // 4570 hudasyaithan
     // 4722 biaydi
 
