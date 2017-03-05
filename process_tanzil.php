@@ -54,6 +54,7 @@ $quran_data = json_decode(file_get_contents("tanzil/quran.json"));
 $surat_data = json_decode(file_get_contents("tanzil/surat.json"));
 
 $out_quran = fopen("data/quran_teks.txt", "wb");
+$out_muqat = fopen("data/quran_muqathaat.txt", "wb");
 $out_trans = fopen("data/trans-indonesian.txt", "wb");
 
 $num_ayat = count($quran_data->quran);
@@ -70,6 +71,11 @@ for ($surat_no = 1; $surat_no < $num_surat; $surat_no++) {
 
         if ($ayat_no == 1 && $surat_no != 1) {
             $quran_text = remove_basmalah($quran_text);
+        }
+
+        if (array_key_exists("$surat_no $ayat_no", $muqathaat)) {
+            fwrite($out_muqat, $surat_no . "|" . $surat_name . "|" . $ayat_no . "|" . $quran_text);
+            $quran_text = str_replace($muqathaat["$surat_no $ayat_no"][0], $muqathaat["$surat_no $ayat_no"][1], $quran_text);
         }
 
         fwrite($out_quran, $surat_no . "|" . $surat_name . "|" . $ayat_no . "|" . $quran_text);
