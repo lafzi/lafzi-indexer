@@ -50,25 +50,58 @@ define("HAMZAH_WAU", "ؤ");
 define("HAMZAH_ALIF_A", "أ");
 define("HAMZAH_ALIF_I", "إ");
 
+define("UTHMANI_HIZB", "۞");
+define("UTHMANI_SAJDAH", "۩");
+define("UTHMANI_ALIF", "ٱ");
+define("UTHMANI_SMALL_HAMZAH", "ٔ");
+define("UTHMANI_SMALL_YA", "ۧ");
+
+// http://corpus.quran.com/java/unicode.jsp
+$UTHMANI_DIAC = json_decode('["\u06EA", "\u06EB", "\u06EC", "\u06ED", "\u06E2", "\u06E3", "\u06E5", "\u06E6", "\u06E8", "\u06df", "\u06e0", "\u06DC", "\u0653", "\u0670"]');
+
 // mengodekan teks arabic menjadi kode fonetik dengan beberapa langkah
 // param  : $ar_string : string teks Al-Quran (arabic)
 // return : kode fonetik 
 function ar_fonetik($ar_string, $tanpa_harakat = true) {
-    
-   $ar_string = ar_hilangkan_spasi($ar_string);
-   $ar_string = ar_hilangkan_tasydid($ar_string);
-   $ar_string = ar_gabung_huruf_mati($ar_string);
-   $ar_string = ar_akhir_ayat($ar_string);
-   $ar_string = ar_substitusi_tanwin($ar_string);
-   $ar_string = ar_hilangkan_mad($ar_string);
-   $ar_string = ar_hilangkan_huruf_tidak_dibaca($ar_string);
-   $ar_string = ar_substitusi_iqlab($ar_string);
-   $ar_string = ar_substitusi_idgham($ar_string);
-   if ($tanpa_harakat) $ar_string = ar_hilangkan_harakat($ar_string);
-   $kode_fonetik = ar_fonetik_encode($ar_string);
-   
-   return $kode_fonetik;
-   
+
+    $ar_string = ar_format_uthmani($ar_string);
+    $ar_string = ar_hilangkan_spasi($ar_string);
+    $ar_string = ar_hilangkan_tasydid($ar_string);
+    $ar_string = ar_gabung_huruf_mati($ar_string);
+    $ar_string = ar_akhir_ayat($ar_string);
+    $ar_string = ar_substitusi_tanwin($ar_string);
+    $ar_string = ar_hilangkan_mad($ar_string);
+    $ar_string = ar_hilangkan_huruf_tidak_dibaca($ar_string);
+    $ar_string = ar_substitusi_iqlab($ar_string);
+    $ar_string = ar_substitusi_idgham($ar_string);
+    if ($tanpa_harakat) $ar_string = ar_hilangkan_harakat($ar_string);
+    $kode_fonetik = ar_fonetik_encode($ar_string);
+
+    return $kode_fonetik;
+
+}
+
+// menormalkan mushaf uthmani (tanda waqaf dll)
+// param  : $ar_string : string teks Al-Quran (arabic)
+// return : string arabic clean
+function ar_format_uthmani($ar_string) {
+
+    global $UTHMANI_DIAC;
+
+    $ar_string = mb_ereg_replace(UTHMANI_HIZB, "", $ar_string);
+    $ar_string = mb_ereg_replace(UTHMANI_SAJDAH, "", $ar_string);
+
+    $ar_string = mb_ereg_replace(UTHMANI_ALIF, ALIF, $ar_string);
+    $ar_string = mb_ereg_replace(UTHMANI_SMALL_HAMZAH, HAMZAH, $ar_string);
+
+    $ar_string = mb_ereg_replace(UTHMANI_SMALL_YA.KASRAH, YA.KASRAH, $ar_string);
+
+    foreach ($UTHMANI_DIAC as $u) {
+        $ar_string = mb_ereg_replace($u, "", $ar_string);
+    }
+
+    return $ar_string;
+
 }
 
 // menghilangkan spasi dari string arabic
@@ -109,6 +142,9 @@ function ar_gabung_huruf_mati($ar_string) {
             // dan pointer array loncat
             $str .= $curr;
             $i += 2;
+        } else if ($curr == $next1) { // uthmani
+            $str .= $curr;
+            $i += 1;
         } else {
             $str .= $curr;
         }
@@ -194,7 +230,7 @@ function ar_hilangkan_mad($ar_string) {
         $next2 = isset($arr[$i+2]) ? $arr[$i+2] : $arr[$i];
         
         if (
-           ($curr == FATHAH && ($next1 == ALIF || $next1 == ALIF_MAQSURA) && ($next2 != FATHAH && $next2 != KASRAH && $next2 != DHAMMAH))
+           ($curr == FATHAH && ($next1 == ALIF) && ($next2 != FATHAH && $next2 != KASRAH && $next2 != DHAMMAH))
            || 
            ($curr == KASRAH && ($next1 == YA) && ($next2 != FATHAH && $next2 != KASRAH && $next2 != DHAMMAH))
            || 
@@ -226,15 +262,15 @@ function ar_hilangkan_huruf_tidak_dibaca($ar_string) {
 
     $arr = ar_string_to_array($ar_string);
     $str = "";
-    
+
     for ($i = 0; $i < count($arr); $i++) {
         
         $curr = $arr[$i];
         $next = isset($arr[$i+1]) ? $arr[$i+1] : $arr[$i];
         
-        if (ar_huruf($curr) && ar_huruf($next)) {
+        if (ar_huruf($curr) && ar_huruf($next) && $curr != NUN && $curr != MIM && $curr != DAL) {
             // jika yang sekarang adalah huruf dan selanjutnya adalah huruf juga
-            // maka yang sekarang tidak bertanda
+            // maka yang sekarang tidak bertanda, kecuali NUN, MIM (uthmani)
             // maka buang saja
             $str .= $next;
             $i++;            
@@ -254,9 +290,9 @@ function ar_hilangkan_huruf_tidak_dibaca($ar_string) {
         $curr = $arr[$i];
         $next = isset($arr[$i+1]) ? $arr[$i+1] : $arr[$i];
         
-        if (ar_huruf($curr) && ar_huruf($next)) {
+        if (ar_huruf($curr) && ar_huruf($next) && $curr != NUN && $curr != MIM && $curr != DAL) {
             // jika yang sekarang adalah huruf dan selanjutnya adalah huruf juga
-            // maka yang sekarang tidak bertanda
+            // maka yang sekarang tidak bertanda, kecuali NUN, MIM (uthmani)
             // maka buang saja
             $str .= $next;
             $i++;            
@@ -274,8 +310,11 @@ function ar_hilangkan_huruf_tidak_dibaca($ar_string) {
 // param  : $ar_string : string teks Al-Quran (arabic)
 // return : string arabic dengan huruf iqlab disesuaikan
 function ar_substitusi_iqlab($ar_string) {
-    
-    return mb_ereg_replace(NUN.SUKUN.BA, MIM.SUKUN.BA, $ar_string);        
+
+    $ar_string = mb_ereg_replace(NUN.SUKUN.BA, MIM.SUKUN.BA, $ar_string);
+    $ar_string = mb_ereg_replace(NUN.BA, MIM.SUKUN.BA, $ar_string);
+
+    return $ar_string;
     
 }
 
@@ -287,7 +326,13 @@ function ar_substitusi_idgham($ar_string) {
     $ar_string = mb_ereg_replace(NUN.SUKUN.NUN, NUN, $ar_string);    
     $ar_string = mb_ereg_replace(NUN.SUKUN.MIM, MIM, $ar_string);    
     $ar_string = mb_ereg_replace(NUN.SUKUN.LAM, LAM, $ar_string);    
-    $ar_string = mb_ereg_replace(NUN.SUKUN.RA, RA, $ar_string);    
+    $ar_string = mb_ereg_replace(NUN.SUKUN.RA, RA, $ar_string);
+
+    // uthmani
+    $ar_string = mb_ereg_replace(NUN.NUN, NUN, $ar_string);
+    $ar_string = mb_ereg_replace(NUN.MIM, MIM, $ar_string);
+    $ar_string = mb_ereg_replace(NUN.LAM, LAM, $ar_string);
+    $ar_string = mb_ereg_replace(NUN.RA, RA, $ar_string);
 
     // pengecualian
     $ar_string = mb_ereg_replace("دُنْي", "DUNYA", $ar_string);
@@ -297,6 +342,9 @@ function ar_substitusi_idgham($ar_string) {
     
     $ar_string = mb_ereg_replace(NUN.SUKUN.YA, YA, $ar_string);    
     $ar_string = mb_ereg_replace(NUN.SUKUN.WAU, WAU, $ar_string);
+    // uthmani
+    $ar_string = mb_ereg_replace(NUN.YA, YA, $ar_string);
+    $ar_string = mb_ereg_replace(NUN.WAU, WAU, $ar_string);
 
     // dikembalikan lagi
     $ar_string = mb_ereg_replace("DUNYA", "دُنْي", $ar_string);    
@@ -329,7 +377,7 @@ function ar_fonetik_encode($ar_string) {
     
     $arr = ar_string_to_array($ar_string);
     $str = "";
-    
+
     $map = array(
         JIM  => "Z",
         ZA   => "Z",
@@ -363,6 +411,7 @@ function ar_fonetik_encode($ar_string) {
         LAM => "L",
         BA  => "B",
         YA  => "Y",
+        ALIF_MAQSURA => "Y",        // uthmani
         WAU => "W",
         RA  => "R",
         
@@ -375,7 +424,8 @@ function ar_fonetik_encode($ar_string) {
     for ($i = 0; $i < count($arr); $i++) {
         
         $char = $arr[$i];
-        $str .= $map[$char];
+        if (array_key_exists($char, $map))
+            $str .= $map[$char];
         
     }
     
@@ -569,3 +619,50 @@ echo "</tr>";
 echo "</table>";
 
 */
+
+function dbg($ar_string) {
+    print_r(ar_string_to_array($ar_string));
+}
+
+if (php_sapi_name() == 'cli') {
+
+    //$ar = "وَهُوَ ٱلَّذِىٓ أَنزَلَ مِنَ ٱلسَّمَآءِ مَآءًۭ فَأَخْرَجْنَا بِهِۦ نَبَاتَ كُلِّ شَىْءٍۢ فَأَخْرَجْنَا مِنْهُ خَضِرًۭا نُّخْرِجُ مِنْهُ حَبًّۭا مُّتَرَاكِبًۭا وَمِنَ ٱلنَّخْلِ مِن طَلْعِهَا قِنْوَانٌۭ دَانِيَةٌۭ وَجَنَّـٰتٍۢ مِّنْ أَعْنَابٍۢ وَٱلزَّيْتُونَ وَٱلرُّمَّانَ مُشْتَبِهًۭا وَغَيْرَ";
+    //$ar = "أَفَمَنْ أَسَّسَ بُنْيَـٰنَهُۥ عَلَىٰ تَقْوَىٰ مِنَ ٱللَّهِ وَرِضْوَٰنٍ خَيْرٌ أَم مَّنْ أَسَّسَ بُنْيَـٰنَهُۥ عَلَىٰ شَفَا جُرُفٍ هَارٍۢ فَٱنْهَارَ بِهِۦ فِى نَارِ جَهَنَّمَ ۗ وَٱللَّهُ لَا يَهْدِى ٱلْقَوْمَ ٱلظَّـٰلِمِينَ";
+    //$ar = "أُو۟لَـٰٓئِكَ ٱلَّذِينَ ٱشْتَرَوُا۟ ٱلْحَيَوٰةَ ٱلدُّنْيَا بِٱلْـَٔاخِرَةِ ۖ فَلَا يُخَفَّفُ عَنْهُمُ ٱلْعَذَابُ وَلَا هُمْ يُنصَرُونَ";
+    //$ar = "وَفِى ٱلْأَرْضِ قِطَعٌۭ مُّتَجَـٰوِرَٰتٌۭ وَجَنَّـٰتٌۭ مِّنْ أَعْنَـٰبٍۢ وَزَرْعٌۭ وَنَخِيلٌۭ صِنْوَانٌۭ وَغَيْرُ صِنْوَانٍۢ يُسْقَىٰ بِمَآءٍۢ وَٰحِدٍۢ وَنُفَضِّلُ بَعْضَهَا عَلَىٰ بَعْضٍۢ فِى ٱلْأُكُلِ ۚ إِنَّ فِى ذَٰلِكَ لَـَٔايَـٰتٍۢ لِّقَوْمٍۢ يَعْقِلُونَ";
+
+    $ar = "۞ وَإِن تَعْجَبْ فَعَجَبٌۭ قَوْلُهُمْ أَءِذَا كُنَّا تُرَٰبًا أَءِنَّا لَفِى خَلْقٍۢ جَدِيدٍ ۗ أُو۟لَـٰٓئِكَ ٱلَّذِينَ كَفَرُوا۟ بِرَبِّهِمْ ۖ وَأُو۟لَـٰٓئِكَ ٱلْأَغْلَـٰلُ فِىٓ أَعْنَاقِهِمْ ۖ وَأُو۟لَـٰٓئِكَ أَصْحَـٰبُ ٱلنَّارِ ۖ هُمْ فِيهَا خَـٰلِدُونَ";
+    $ar = "وَيَقُولُ ٱلَّذِينَ كَفَرُوا۟ لَوْلَآ أُنزِلَ عَلَيْهِ ءَايَةٌۭ مِّن رَّبِّهِۦٓ ۗ إِنَّمَآ أَنتَ مُنذِرٌۭ ۖ وَلِكُلِّ قَوْمٍ هَادٍ";
+    $ar = "أُو۟لَـٰٓئِكَ ٱلَّذِينَ ٱشْتَرَوُا۟ ٱلضَّلَـٰلَةَ بِٱلْهُدَىٰ فَمَا رَبِحَت تِّجَـٰرَتُهُمْ وَمَا كَانُوا۟ مُهْتَدِينَ";
+    $ar = "يَكَادُ ٱلْبَرْقُ يَخْطَفُ أَبْصَـٰرَهُمْ ۖ كُلَّمَآ أَضَآءَ لَهُم مَّشَوْا۟ فِيهِ وَإِذَآ أَظْلَمَ عَلَيْهِمْ قَامُوا۟ ۚ وَلَوْ شَآءَ ٱللَّهُ لَذَهَبَ بِسَمْعِهِمْ وَأَبْصَـٰرِهِمْ ۚ إِنَّ ٱللَّهَ عَلَىٰ كُلِّ شَىْءٍۢ قَدِيرٌۭ";
+    $ar = "صُمٌّۢ بُكْمٌ عُمْىٌۭ فَهُمْ لَا يَرْجِعُونَ";
+    $ar = "وَمِنَ ٱلنَّاسِ مَن يَقُولُ ءَامَنَّا بِٱللَّهِ وَبِٱلْيَوْمِ ٱلْـَٔاخِرِ وَمَا هُم بِمُؤْمِنِينَ";
+    $ar = "يَـٰٓأَيُّهَا ٱلَّذِينَ ءَامَنُوا۟ ٱتَّقُوا۟ ٱللَّهَ وَذَرُوا۟ مَا بَقِىَ مِنَ ٱلرِّبَوٰٓا۟ إِن كُنتُم مُّؤْمِنِينَ";
+
+    // echo ar_fonetik($ar, false);
+
+    dbg("أَن يُحْـِۧىَ ");
+
+    // issues:
+    // 1130 yalhats
+    // 1150 waliyiya
+    // 1514 majraha
+    // 2571 nunzil
+    // 3195 ataniyallah
+    // 4262 aa'zamiy
+    // 4570 hudasyaithan
+    // 4722 biaydi
+
+    // wrong:
+    // 2484 iqtaraba
+    // 4847 iqtaraba
+    // 5272 nun walqalami
+    // 6107 iqra
+
+}
+
+
+
+
+
+
