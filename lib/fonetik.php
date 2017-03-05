@@ -61,6 +61,7 @@ define("UTHMANI_IMALAH", "۪");
 
 // http://corpus.quran.com/java/unicode.jsp
 $UTHMANI_DIAC = json_decode('["\u06EA", "\u06EB", "\u06EC", "\u06ED", "\u06E2", "\u06E3", "\u06E5", "\u06E6", "\u06E8", "\u06df", "\u06e0", "\u06DC", "\u0653", "\u0670"]');
+$UTHMANI_WAQF = json_decode('["\u06D6", "\u06D7", "\u06D8", "\u06D9", "\u06DA", "\u06DB", "\u06DC"]');
 
 // mengodekan teks arabic menjadi kode fonetik dengan beberapa langkah
 // param  : $ar_string : string teks Al-Quran (arabic)
@@ -89,7 +90,7 @@ function ar_fonetik($ar_string, $tanpa_harakat = true) {
 // return : string arabic clean
 function ar_format_uthmani($ar_string) {
 
-    global $UTHMANI_DIAC;
+    global $UTHMANI_DIAC, $UTHMANI_WAQF;
 
     $ar_string = mb_ereg_replace(UTHMANI_HIZB, "", $ar_string);
     $ar_string = mb_ereg_replace(UTHMANI_SAJDAH, "", $ar_string);
@@ -104,7 +105,14 @@ function ar_format_uthmani($ar_string) {
     $ar_string = mb_ereg_replace(UTHMANI_IMALAH, KASRAH, $ar_string);
     $ar_string = mb_ereg_replace(UTHMANI_SMALL_NUN, NUN.SUKUN, $ar_string);
 
+    $ar_string = mb_ereg_replace("ي۟", "", $ar_string); // weird
+    $ar_string = mb_ereg_replace(TSA." ", TSA.SUKUN, $ar_string);
+
     foreach ($UTHMANI_DIAC as $u) {
+        $ar_string = mb_ereg_replace($u, "", $ar_string);
+    }
+
+    foreach ($UTHMANI_WAQF as $u) {
         $ar_string = mb_ereg_replace($u, "", $ar_string);
     }
 
@@ -648,13 +656,6 @@ if (php_sapi_name() == 'cli') {
     $ar = "يَـٰٓأَيُّهَا ٱلَّذِينَ ءَامَنُوا۟ ٱتَّقُوا۟ ٱللَّهَ وَذَرُوا۟ مَا بَقِىَ مِنَ ٱلرِّبَوٰٓا۟ إِن كُنتُم مُّؤْمِنِينَ";
 
     // echo ar_fonetik($ar, false);
-
-    dbg("أَن يُحْـِۧىَ ");
-
-    // issues:
-    // 1130 yalhats
-    // 4570 hudasyaithan
-    // 4722 biaydi
 
     // wrong:
     // 2484 iqtaraba
