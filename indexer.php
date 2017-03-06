@@ -1,14 +1,22 @@
 <?php
 
-// mengindeks dokumen, versi flat file
+// mengindeks korpus, versi flat file
 
 // profiling
 $time_start = microtime(true);
 
 include 'lib/trigram.php';
 
-// parameter
-$bervokal = false;
+if ($argc == 1) { echo 'Tambahkan argumen "V" atau "NV"' . "\n"; exit(1); }
+
+if ($argv[1] == "V")
+    $bervokal = true;
+else if ($argv[1] == "NV")
+    $bervokal = false;
+else {
+    echo 'Tambahkan argumen "V" atau "NV"' . "\n";
+    exit(1);
+}
 
 if ($bervokal) {
     $doc_file = "index/fonetik_vokal.txt";
@@ -122,3 +130,6 @@ $time = $time_end - $time_start;
  
 echo "\nTerindeks dalam $time detik\n";
 echo "Memory peak usage : " . memory_get_peak_usage() . "\n\n";
+echo "File disimpan di:\n";
+echo "- $term_list_file\n";
+echo "- $posting_list_file\n\n";

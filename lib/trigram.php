@@ -35,6 +35,7 @@ function frekuensi_trigram_string($string) {
     
 }
 
+// [UNUSED]
 // menghitung frekuensi trigram
 // param  : $string yang akan dihitung frekuensi dan posisi kemunculan pertama trigramnya
 // return : array berisi trigram sebagai key dan (frekuensi, posisi) sebagai value
@@ -56,6 +57,9 @@ function trigram_frekuensi_posisi($string) {
     
 }
 
+// menghitung frekuensi trigram
+// param  : $string yang akan dihitung frekuensi dan seluruh posisi kemunculan trigramnya
+// return : array berisi trigram sebagai key dan (frekuensi, posisi) sebagai value
 function trigram_frekuensi_posisi_all($string) {
     
     $array = ekstrak_trigram($string);
@@ -93,8 +97,5 @@ function strpos_all($haystack,$needle){
     }
 }
 
-// test suite
-
-// print_r(trigram_frekuensi_posisi_all("ALAAALAMANALALA")); 
  
 
