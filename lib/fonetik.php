@@ -485,33 +485,22 @@ function ar_huruf($ar_char) {
         return true;
 }
 
-/* test suite 
-
-$ar_string = "اعْلَمُوا أَنَّمَا الْحَيَاةُ الدُّنْيَا لَعِبٌ وَلَهْوٌ وَزِينَةٌ وَتَفَاخُرٌ بَيْنَكُمْ وَتَكَاثُرٌ فِي الْأَمْوَالِ وَالْأَوْلَادِ كَمَثَلِ غَيْثٍ أَعْجَبَ الْكُفَّارَ نَبَاتُهُ ثُمَّ يَهِيجُ فَتَرَاهُ مُصْفَرًّا ثُمَّ يَكُونُ حُطَامًا وَفِي الْآخِرَةِ عَذَابٌ شَدِيدٌ وَمَغْفِرَةٌ مِنَ اللَّهِ وَرِضْوَانٌ وَمَا الْحَيَاةُ الدُّنْيَا إِلَّا مَتَاعُ الْغُرُورِ";
-
-echo "\n ";
-echo ar_fonetik($ar_string, false);
-
-echo "\n\n";
-
- */
-
 // tambahan untuk highlighting hasil pencarian
+// reduksi tanpa phonetic encoding
+function ar_reduksi($ar_string, $tanpa_harakat = true) {
 
-function ar_reduksi($ar_string, $hilangkan_vokal = false) {
-    
-   $ar_string = ar_hilangkan_spasi($ar_string);
-   $ar_string = ar_hilangkan_tasydid($ar_string);
-   $ar_string = ar_gabung_huruf_mati($ar_string);
-   $ar_string = ar_akhir_ayat($ar_string);
-   $ar_string = ar_substitusi_tanwin($ar_string);
-   $ar_string = ar_hilangkan_mad($ar_string);
-   $ar_string = ar_hilangkan_huruf_tidak_dibaca($ar_string);
-   $ar_string = ar_substitusi_iqlab($ar_string);
-   $ar_string = ar_substitusi_idgham($ar_string);
-
-   $ar_string = mb_ereg_replace(SUKUN, "", $ar_string);
-   if ($hilangkan_vokal) $ar_string = ar_hilangkan_harakat($ar_string);
+    $ar_string = ar_format_uthmani($ar_string);
+    $ar_string = ar_hilangkan_spasi($ar_string);
+    $ar_string = ar_hilangkan_tasydid($ar_string);
+    $ar_string = ar_gabung_huruf_mati($ar_string);
+    $ar_string = ar_akhir_ayat($ar_string);
+    $ar_string = ar_substitusi_tanwin($ar_string);
+    $ar_string = ar_hilangkan_mad($ar_string);
+    $ar_string = ar_hilangkan_huruf_tidak_dibaca($ar_string);
+    $ar_string = ar_substitusi_iqlab($ar_string);
+    $ar_string = ar_substitusi_idgham($ar_string);
+    $ar_string = mb_ereg_replace(SUKUN, "", $ar_string);
+    if ($tanpa_harakat) $ar_string = ar_hilangkan_harakat($ar_string);
    
    return $ar_string;
    
@@ -534,8 +523,9 @@ echo strlen(ar_fonetik($ar, false)) . "\n";
 */
 
 // comparer
-function cmp_ph($r, $a) {
-    
+function match($r, $a)
+{
+
     return
         ($r == $a)
         ||
@@ -548,11 +538,21 @@ function cmp_ph($r, $a) {
         ($r == HAMZAH_ALIF_A && $a == ALIF_MAD)    // buat alif madda
         ||
         ($r == MIM && $a == NUN)    // buat iqlab
+        ||
+        // uthmani
+        (($r == ALIF || $r == HAMZAH_ALIF_A || $r == HAMZAH_ALIF_I) && $a == UTHMANI_ALIF)
+        ||
+        ($r == HAMZAH && $a == UTHMANI_SMALL_HAMZAH)
+        ||
+        ($r == YA && ($a == UTHMANI_SMALL_YA || $a == UTHMANI_SMALL_YA2 || $a == ALIF_MAQSURA))
+        ||
+        ($r == NUN && $a == UTHMANI_SMALL_NUN)
+        ||
+        ($r == KASRAH && $a == UTHMANI_IMALAH)
     ;
     
 }
 
-// ok, sudah sama, mari kita lanjut
 // memetakan posisi di string reduksi ke posisi di string asli
 function map_reduksi_ke_asli($str_asli, $hilangkan_vokal = false) {
     
@@ -573,12 +573,12 @@ function map_reduksi_ke_asli($str_asli, $hilangkan_vokal = false) {
     // i = pointer array reduksi
     // j = pointer array asli
     for ($i = 0; $i < $len_red; $i++) {
-        if ($asli[$j] == ALIF) { // kalau alif di depan
+        if ($asli[$j] == ALIF || $asli[$j] == UTHMANI_ALIF) { // kalau alif di depan
             $pos[$i] = $j;
             $pos[$i+1] = $j;
             $i+=2;
         }
-        while (!cmp_ph($reduksi[$i], $asli[$j]) && $j < $len_asli) {
+        while ($i < $len_red && $j < $len_asli && !match($reduksi[$i], $asli[$j])) {
             if ($asli[$j] == DHAMMATAIN || $asli[$j] == KASRATAIN || $asli[$j] == FATHATAIN || $asli[$j] == ALIF_MAD) { // skip pointer buat tanwin dan alif madda
                 $pos[$i] = $j;
                 $i++;
@@ -592,55 +592,35 @@ function map_reduksi_ke_asli($str_asli, $hilangkan_vokal = false) {
     
 }
 
-function get_space_positions($ar_string) {
-    
-    $ar_array = ar_string_to_array($ar_string);
-    $len = count($ar_array);
-    $res = array();
-    
-    for ($i = 0; $i < $len; $i++) {
-        if ($ar_array[$i] == ' ')
-            $res[] = $i;
-    }
-    
-    $res[] = $i+1;
-    
-    return $res;
-    
-}
-
-/*
-
-$ar = 
-
-"الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ
-"
-
-;
-
-header("Content-Type: text/html;charset=UTF-8");
-
-echo "<table style='font-size: 20px'>";
-echo "<tr>";
-echo "<td valign='top' width='10%'><pre>";
-print_r(map_reduksi_ke_asli($ar, true));
-echo "</pre></td>";
-echo "<td valign='top' width='10%'><pre>";
-print_r(ar_string_to_array(ar_reduksi($ar, true)));
-echo "</pre></td>";
-echo "<td valign='top' width='10%'><pre>";
-print_r(ar_string_to_array($ar));
-echo "</pre></td>";
-echo "</tr>";
-echo "</table>";
-
-*/
+// ================= FOR DEBUGGING =====================================================================================
 
 function dbg($ar_string) {
     print_r(ar_string_to_array($ar_string));
 }
 
-if (php_sapi_name() == 'cli') {
+if (php_sapi_name() == 'apache2handler' && __FILE__ == $_SERVER['SCRIPT_FILENAME']) {
+
+    $ar = "الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ";
+
+    header("Content-Type: text/html;charset=UTF-8");
+
+    echo "<table style='font-size: 20px'>";
+    echo "<tr>";
+    echo "<td valign='top' width='10%'><pre>";
+    print_r(map_reduksi_ke_asli($ar, true));
+    echo "</pre></td>";
+    echo "<td valign='top' width='10%'><pre>";
+    print_r(ar_string_to_array(ar_reduksi($ar, true)));
+    echo "</pre></td>";
+    echo "<td valign='top' width='10%'><pre>";
+    print_r(ar_string_to_array($ar));
+    echo "</pre></td>";
+    echo "</tr>";
+    echo "</table>";
+
+}
+
+if (php_sapi_name() == 'cli' && basename(dirname(__FILE__)).'/'.basename(__FILE__) == $_SERVER['SCRIPT_FILENAME']) {
 
     //$ar = "وَهُوَ ٱلَّذِىٓ أَنزَلَ مِنَ ٱلسَّمَآءِ مَآءًۭ فَأَخْرَجْنَا بِهِۦ نَبَاتَ كُلِّ شَىْءٍۢ فَأَخْرَجْنَا مِنْهُ خَضِرًۭا نُّخْرِجُ مِنْهُ حَبًّۭا مُّتَرَاكِبًۭا وَمِنَ ٱلنَّخْلِ مِن طَلْعِهَا قِنْوَانٌۭ دَانِيَةٌۭ وَجَنَّـٰتٍۢ مِّنْ أَعْنَابٍۢ وَٱلزَّيْتُونَ وَٱلرُّمَّانَ مُشْتَبِهًۭا وَغَيْرَ";
     //$ar = "أَفَمَنْ أَسَّسَ بُنْيَـٰنَهُۥ عَلَىٰ تَقْوَىٰ مِنَ ٱللَّهِ وَرِضْوَٰنٍ خَيْرٌ أَم مَّنْ أَسَّسَ بُنْيَـٰنَهُۥ عَلَىٰ شَفَا جُرُفٍ هَارٍۢ فَٱنْهَارَ بِهِۦ فِى نَارِ جَهَنَّمَ ۗ وَٱللَّهُ لَا يَهْدِى ٱلْقَوْمَ ٱلظَّـٰلِمِينَ";
@@ -655,7 +635,7 @@ if (php_sapi_name() == 'cli') {
     $ar = "وَمِنَ ٱلنَّاسِ مَن يَقُولُ ءَامَنَّا بِٱللَّهِ وَبِٱلْيَوْمِ ٱلْـَٔاخِرِ وَمَا هُم بِمُؤْمِنِينَ";
     $ar = "يَـٰٓأَيُّهَا ٱلَّذِينَ ءَامَنُوا۟ ٱتَّقُوا۟ ٱللَّهَ وَذَرُوا۟ مَا بَقِىَ مِنَ ٱلرِّبَوٰٓا۟ إِن كُنتُم مُّؤْمِنِينَ";
 
-    // echo ar_fonetik($ar, false);
+    echo ar_fonetik($ar, false);
 
 }
 
