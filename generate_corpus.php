@@ -5,8 +5,6 @@
 // profiling
 $time_start = microtime(true);
 
-error_reporting(E_ALL & ~E_NOTICE);
-
 include 'lib/fonetik.php';
 
 $bervokal = true;
@@ -28,6 +26,9 @@ if ($bervokal) {
 $f = fopen($target_file, "w");
 $fm = fopen($mapping_file, "w");
 
+$limit = 8000;
+$i = 1;
+
 foreach ($docs as $doc) {
     
     // split pada karakter "|"
@@ -46,7 +47,10 @@ foreach ($docs as $doc) {
     echo $id . ". Diproses surah {$data[0]} ayat {$data[2]}\n";
     $count++;
     $id++;
-    
+
+    if ($i >= $limit) break;
+    $i++;
+
 }
 
 fclose($f);

@@ -485,6 +485,8 @@ function ar_huruf($ar_char) {
         return true;
 }
 
+// ================= FOR HIGHLIGHTING ==================================================================================
+
 // tambahan untuk highlighting hasil pencarian
 // reduksi tanpa phonetic encoding
 function ar_reduksi($ar_string, $tanpa_harakat = true) {
@@ -502,30 +504,13 @@ function ar_reduksi($ar_string, $tanpa_harakat = true) {
     $ar_string = mb_ereg_replace(SUKUN, "", $ar_string);
     if ($tanpa_harakat) $ar_string = ar_hilangkan_harakat($ar_string);
    
-   return $ar_string;
+    return $ar_string;
    
 }
-
-/* kita cobain...
- 
-$ar = 
-"قَالُوا تَاللَّهِ تَفْتَأُ تَذْكُرُ يُوسُفَ حَتَّى تَكُونَ حَرَضًا أَوْ تَكُونَ مِنَ الْهَالِكِينَ"
-;
-
-//echo $ar . "\n";
-echo ar_reduksi($ar) . "\n";
-echo ar_fonetik($ar, false) . "\n\n";
-
-$k = ar_string_to_array(ar_reduksi($ar));
-
-echo count($k) . "\n";
-echo strlen(ar_fonetik($ar, false)) . "\n";
-*/
 
 // comparer
 function match($r, $a)
 {
-
     return
         ($r == $a)
         ||
@@ -550,7 +535,6 @@ function match($r, $a)
         ||
         ($r == KASRAH && $a == UTHMANI_IMALAH)
     ;
-    
 }
 
 // memetakan posisi di string reduksi ke posisi di string asli
@@ -600,20 +584,20 @@ function dbg($ar_string) {
 
 if (php_sapi_name() == 'apache2handler' && __FILE__ == $_SERVER['SCRIPT_FILENAME']) {
 
-    $ar = "الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ";
+    $ar = "يَـٰٓأَيُّهَا ٱلَّذِينَ ءَامَنُوٓا۟ إِذَا تَدَايَنتُم بِدَيْنٍ إِلَىٰٓ أَجَلٍۢ مُّسَمًّۭى فَٱكْتُبُوهُ ۚ وَلْيَكْتُب بَّيْنَكُمْ كَاتِبٌۢ بِٱلْعَدْلِ ۚ وَلَا يَأْبَ كَاتِبٌ أَن يَكْتُبَ كَمَا عَلَّمَهُ ٱللَّهُ ۚ فَلْيَكْتُبْ وَلْيُمْلِلِ ٱلَّذِى عَلَيْهِ ٱلْحَقُّ وَلْيَتَّقِ ٱللَّهَ رَبَّهُۥ وَلَا يَبْخَسْ مِنْهُ شَيْـًۭٔا ۚ فَإِن كَانَ ٱلَّذِى عَلَيْهِ ٱلْحَقُّ سَفِيهًا أَوْ ضَعِيفًا أَوْ لَا يَسْتَطِيعُ أَن يُمِلَّ هُوَ فَلْيُمْلِلْ وَلِيُّهُۥ بِٱلْعَدْلِ ۚ وَٱسْتَشْهِدُوا۟ شَهِيدَيْنِ مِن رِّجَالِكُمْ ۖ فَإِن لَّمْ يَكُونَا رَجُلَيْنِ فَرَجُلٌۭ وَٱمْرَأَتَانِ مِمَّن تَرْضَوْنَ مِنَ ٱلشُّهَدَآءِ أَن تَضِلَّ إِحْدَىٰهُمَا فَتُذَكِّرَ إِحْدَىٰهُمَا ٱلْأُخْرَىٰ ۚ وَلَا يَأْبَ ٱلشُّهَدَآءُ إِذَا مَا دُعُوا۟ ۚ وَلَا تَسْـَٔمُوٓا۟ أَن تَكْتُبُوهُ صَغِيرًا أَوْ كَبِيرًا إِلَىٰٓ أَجَلِهِۦ ۚ ذَٰلِكُمْ أَقْسَطُ عِندَ ٱللَّهِ وَأَقْوَمُ لِلشَّهَـٰدَةِ وَأَدْنَىٰٓ أَلَّا تَرْتَابُوٓا۟ ۖ إِلَّآ أَن تَكُونَ تِجَـٰرَةً حَاضِرَةًۭ تُدِيرُونَهَا بَيْنَكُمْ فَلَيْسَ عَلَيْكُمْ جُنَاحٌ أَلَّا تَكْتُبُوهَا ۗ وَأَشْهِدُوٓا۟ إِذَا تَبَايَعْتُمْ ۚ وَلَا يُضَآرَّ كَاتِبٌۭ وَلَا شَهِيدٌۭ ۚ وَإِن تَفْعَلُوا۟ فَإِنَّهُۥ فُسُوقٌۢ بِكُمْ ۗ وَٱتَّقُوا۟ ٱللَّهَ ۖ وَيُعَلِّمُكُمُ ٱللَّهُ ۗ وَٱللَّهُ بِكُلِّ شَىْءٍ عَلِيمٌۭ";
 
     header("Content-Type: text/html;charset=UTF-8");
 
     echo "<table style='font-size: 20px'>";
     echo "<tr>";
     echo "<td valign='top' width='10%'><pre>";
-    print_r(map_reduksi_ke_asli($ar, true));
+    print_r(map_reduksi_ke_asli($ar, false));
     echo "</pre></td>";
     echo "<td valign='top' width='10%'><pre>";
-    print_r(ar_string_to_array(ar_reduksi($ar, true)));
+    dbg(ar_reduksi($ar, false));
     echo "</pre></td>";
     echo "<td valign='top' width='10%'><pre>";
-    print_r(ar_string_to_array($ar));
+    dbg($ar);
     echo "</pre></td>";
     echo "</tr>";
     echo "</table>";
