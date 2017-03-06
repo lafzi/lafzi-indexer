@@ -7,7 +7,16 @@ $time_start = microtime(true);
 
 include 'lib/fonetik.php';
 
-$bervokal = true;
+if ($argc == 1) { echo 'Tambahkan argumen "V" atau "NV"' . "\n"; exit(1); }
+
+if ($argv[1] == "V")
+    $bervokal = true;
+else if ($argv[1] == "NV")
+    $bervokal = false;
+else {
+    echo 'Tambahkan argumen "V" atau "NV"' . "\n";
+    exit(1);
+}
 
 // baca file, satu baris disimpan dalam satu array
 $docs = file('data/quran_teks.txt');
@@ -64,3 +73,6 @@ $time_end = microtime(true);
 $time = $time_end - $time_start;
  
 echo "\nDiproses dalam $time detik\n";
+echo "File disimpan di:\n";
+echo "- $target_file\n";
+echo "- $mapping_file\n\n";
