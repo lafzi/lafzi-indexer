@@ -17,5 +17,5 @@ Langkah-langkah untuk membentuk indeks:
 2. Jalankan `generate_corpus.php` dengan parameter `V` atau `NV` (dengan vokal atau tanpa vokal) untuk mengkodekan teks Quran menjadi kode fonetis Lafzi.
 3. Jalankan `indexer.php` dengan parameter `V` atau `NV` untuk menyusun indeks dari kode fonetis.
 
-
+Seluruh script PHP merupakan PHP yang dijalankan di command line, bukan browser.
 
