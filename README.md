@@ -11,6 +11,9 @@ Keterangan isi folder yang mengandung data:
 - data: Hasil pemrosesan data dari tanzil menjadi file txt.
 - index: Hasil pengkodean fonetis dan hasil indexing berada di folder ini.
 
+Menjalankan
+---
+
 Langkah-langkah untuk membentuk indeks:
 
 1. Jalankan `process_tanzil.php` untuk membaca teks Quran dari tanzil sekaligus transformasi huruf-huruf *muqattha'at*.
@@ -19,3 +22,7 @@ Langkah-langkah untuk membentuk indeks:
 
 Seluruh script PHP merupakan PHP yang dijalankan di command line, bukan browser.
 
+Lisensi
+---
+
+GPL (GNU General Public License) v3. Anda bebas menggunakan, memodifikasi, dan mendistribusikan software ini dengan syarat tetap menjadikannya *open-source*.
