@@ -92,23 +92,29 @@ foreach ($index as $term => $postings) {
     
     $posting_list = array();
     $posting_list_string = "";
-    
+
+    // set Redis key untuk lookup
+    $key = $key_prefix.$term;
+
     // setiap value indeks adalah beberapa posting
     foreach ($postings as $posting) {
         
-        // format id:frekuensi:posisi
         list($id, $freq, $pos) = $posting;
-        $posting_string = "$id:$freq:" . implode(",", $pos);
-        $posting_list[] = $posting_string;
+        $posting_hash = array(
+            'freq' => $freq,
+            'pos' => $pos
+        );
+
+        /*
+        simpan ke Redis dengan format :
+            redis['nonvocal-BBB'][$id_fonetik] = "{
+                'freq': 2,
+                'pos': [68, 102]
+            ";
+        */
+        $redis->hset($key, $id, json_encode($posting_hash));
         
     }
-    
-    $posting_list_string = implode(";", $posting_list);
- 
-    // set ke Redis
-    $key = $key_prefix.$term;
-    $redis->set($key, $posting_list_string);
-
 }
 
 // selesai, hapus index di memory
