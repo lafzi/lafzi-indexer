@@ -89,32 +89,11 @@ ksort($index);
 
 // untuk setiap term pada indeks
 foreach ($index as $term => $postings) {
-    
-    $posting_list = array();
-    $posting_list_string = "";
 
-    // set Redis key untuk lookup
+    // set ke Redis
     $key = $key_prefix.$term;
+    $redis->set($key, json_encode($postings));
 
-    // setiap value indeks adalah beberapa posting
-    foreach ($postings as $posting) {
-        
-        list($id, $freq, $pos) = $posting;
-        $posting_hash = array(
-            'freq' => $freq,
-            'pos' => $pos
-        );
-
-        /*
-        simpan ke Redis dengan format :
-            redis['nonvocal-BBB'][$id_fonetik] = "{
-                'freq': 2,
-                'pos': [68, 102]
-            ";
-        */
-        $redis->hset($key, $id, json_encode($posting_hash));
-        
-    }
 }
 
 // selesai, hapus index di memory
