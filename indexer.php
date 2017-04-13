@@ -55,7 +55,35 @@ foreach ($docs as $doc) {
         
     // ekstrak trigram
     $trigrams = trigram_frekuensi_posisi_all($text);
-    
+
+    /*
+     * Resolving ambiguitas (https://github.com/lafzi/lafzi-web/issues/1)
+     * Jika ada trigram "AXI" atau "AXU", maka tambahkan trigram baru:
+     * - AXI ==> AY + karakter setelah I
+     * - AXU ==> AW + karakter setelah U
+     * Dokumen tidak dimofidikasi. Cuma relevan buat yg bervokal.
+     */
+
+    $new_trigrams = array();
+
+    foreach(array("AXI" => "AY", "AXU" => "AW") as $amb => $rep) {
+        if (isset($trigrams[$amb])) {
+            $poss = $trigrams[$amb][1];
+            foreach ($poss as $p) {
+                $nextchar = $text[$p + 2];  // dijamin ada?
+                $trigram  = $rep . $nextchar;
+                if (!isset($new_trigrams[$trigram]))
+                    $new_trigrams[$trigram] = array($p);
+                else
+                    $new_trigrams[$trigram][] = $p;
+            }
+        }
+    }
+
+    foreach($new_trigrams as $trigram => $poss) {
+        $trigrams[$trigram] = array(count($poss), $poss); // freq, pos
+    }
+
     foreach ($trigrams as $trigram => $fp) {
         
         // $fp[0] = frekuensi, $fp[1] = posisi trigram
