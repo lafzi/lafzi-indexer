@@ -61,6 +61,9 @@ foreach ($docs as $doc) {
      * Jika ada trigram "AXI" atau "AXU", maka tambahkan trigram baru:
      * - AXI ==> AY + karakter setelah I
      * - AXU ==> AW + karakter setelah U
+     *
+     * Begitu juga sebelum dan sesudahnya.
+     * Misalnya "BIMAXUNZILA" akan ada trigram baru: MAW, AWN, WNZ
      * Dokumen tidak dimofidikasi. Cuma relevan buat yg bervokal.
      */
 
@@ -70,18 +73,44 @@ foreach ($docs as $doc) {
         if (isset($trigrams[$amb])) {
             $poss = $trigrams[$amb][1];
             foreach ($poss as $p) {
-                $nextchar = $text[$p + 2];  // dijamin ada?
+                $nextchar = $text[$p + 2];
                 $trigram  = $rep . $nextchar;
                 if (!isset($new_trigrams[$trigram]))
                     $new_trigrams[$trigram] = array($p);
                 else
                     $new_trigrams[$trigram][] = $p;
+
+                // setelah setelahnya
+                if (isset($text[$p + 3])) { // tidak dijamin ada
+                    $nextchar2 = $text[$p + 3];
+                    $trigram  = $rep[1] . $nextchar . $nextchar2;
+                    if (!isset($new_trigrams[$trigram]))
+                        $new_trigrams[$trigram] = array($p + 2);
+                    else
+                        $new_trigrams[$trigram][] = $p + 2;
+                }
+
+                // sebelum yang ambigu
+                $prevchar = $text[$p - 2];
+                $trigram  = $prevchar . $rep;
+                if (!isset($new_trigrams[$trigram]))
+                    $new_trigrams[$trigram] = array($p - 1);
+                else
+                    $new_trigrams[$trigram][] = $p - 1;
             }
         }
     }
 
+
+
     foreach($new_trigrams as $trigram => $poss) {
-        $trigrams[$trigram] = array(count($poss), $poss); // freq, pos
+        if (!isset($trigrams[$trigram]))
+            $trigrams[$trigram] = array(count($poss), $poss); // freq, pos
+        else {
+            // kalau sudah ada
+            $trigrams[$trigram][0] += count($poss); // freq ditambah
+            $trigrams[$trigram][1]  = array_merge($trigrams[$trigram][1], $poss); // pos di-merge
+        }
     }
 
     foreach ($trigrams as $trigram => $fp) {
