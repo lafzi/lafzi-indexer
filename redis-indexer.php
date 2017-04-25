@@ -83,7 +83,7 @@ foreach ($docs as $doc) {
                     $new_trigrams[$trigram][] = $p;
 
                 // setelah setelahnya
-                if (isset($text[$p + 3])) { // tidak dijamin ada
+                if (isset($text[$p + 3]) && $text[$p + 3] != "\n") { // tidak dijamin ada
                     $nextchar2 = $text[$p + 3];
                     $trigram  = $rep[1] . $nextchar . $nextchar2;
                     if (!isset($new_trigrams[$trigram]))
