@@ -46,7 +46,7 @@ $muqathaat = [
 ];
 
 function remove_basmalah($str) {
-    $basmalah = "بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ ";
+    $basmalah = array("بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ ", "بِّسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ ");
     return str_replace($basmalah, "", $str);
 }
 
